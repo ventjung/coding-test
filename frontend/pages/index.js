@@ -5,15 +5,17 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch("http://localhost:8000/api/data")
       .then((res) => res.json())
       .then((data) => {
-        setUsers(data.users || []);
+        setUsers(data.salesReps || []);
         setLoading(false);
       })
       .catch((err) => {
+        setError('Failed to fetch data');
         console.error("Failed to fetch data:", err);
         setLoading(false);
       });
@@ -29,6 +31,7 @@ export default function Home() {
       const data = await response.json();
       setAnswer(data.answer);
     } catch (error) {
+      setError('Error in AI request');
       console.error("Error in AI request:", error);
     }
   };
@@ -36,7 +39,11 @@ export default function Home() {
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Next.js + FastAPI Sample</h1>
-
+      {
+        error && (
+          <p style={{ border: "1px solid red", padding: "1rem" }}>Error : {error}</p>
+        )
+      }
       <section style={{ marginBottom: "2rem" }}>
         <h2>Dummy Data</h2>
         {loading ? (
@@ -44,8 +51,52 @@ export default function Home() {
         ) : (
           <ul>
             {users.map((user) => (
-              <li key={user.id}>
-                {user.name} - {user.role}
+              <li key={user.id} style={{ marginBottom: "2rem" }}>
+                {user.name} - {user.role}<br /><br />
+                <strong>Skills:</strong>
+                <ol>
+                  {user.skills.map((skill, l) => (
+                    <li key={l}>{skill}</li>
+                  ))}
+                </ol><br />
+                <strong>Deals:</strong>
+                <table border="1" style={{ marginBottom: "1rem" }}>
+                  <thead>
+                    <tr>
+                      <th>Client</th>
+                      <th>Value</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {user.deals.map((deal, i) => (
+                      <tr key={i}>
+                        <td>{deal.client}</td>
+                        <td>{deal.value}</td>
+                        <td>{deal.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <strong>Clients:</strong>
+                <table border="1" style={{ marginBottom: "1rem" }}>
+                  <thead>
+                    <tr>
+                      <th>Client</th>
+                      <th>Value</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {user.clients.map((client, j) => (
+                      <tr key={j}>
+                        <td>{client.name}</td>
+                        <td>{client.industry}</td>
+                        <td>{client.contact}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </li>
             ))}
           </ul>
@@ -65,7 +116,9 @@ export default function Home() {
         </div>
         {answer && (
           <div style={{ marginTop: "1rem" }}>
-            <strong>AI Response:</strong> {answer}
+            <strong>AI Response:</strong> {
+              answer.replace(/\*\*([^*]*?)\*\*/g, '$1')
+            }
           </div>
         )}
       </section>
