@@ -6,6 +6,7 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:8000/api/data")
@@ -23,6 +24,7 @@ export default function Home() {
 
   const handleAskQuestion = async () => {
     try {
+      setLoadingAI(true);
       const response = await fetch("http://localhost:8000/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -30,7 +32,9 @@ export default function Home() {
       });
       const data = await response.json();
       setAnswer(data.answer);
+      setLoadingAI(false);
     } catch (error) {
+      setLoadingAI(false);
       setError('Error in AI request');
       console.error("Error in AI request:", error);
     }
@@ -112,7 +116,11 @@ export default function Home() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
           />
-          <button onClick={handleAskQuestion}>Ask</button>
+          <button onClick={handleAskQuestion} disabled={loadingAI}>Ask</button>
+          {
+            loadingAI ?
+              <p>Loading...</p> : null
+          }
         </div>
         {answer && (
           <div style={{ marginTop: "1rem" }}>
